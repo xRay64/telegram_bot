@@ -5,8 +5,8 @@ import com.sulakov.tbot.Bot;
 import com.sulakov.tbot.CommandParser;
 import com.sulakov.tbot.ParsedCommand;
 import org.apache.log4j.Logger;
-import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.objects.Update;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 public class ReceivedUpdateHandler implements Runnable {
 
@@ -24,48 +24,46 @@ public class ReceivedUpdateHandler implements Runnable {
     @Override
     public void run() {
         logger.info("Start handling the update: " + update);
-        switch (getUpdateType(update)) {
-            case MESSAGE_WITH_TEXT:
-                Long chatId = update.getMessage().getChatId();
-                Boolean needToAnswer = false;
-                String textToSend = "";
+        if (getUpdateType(update) == MessageType.MESSAGE_WITH_TEXT) {
+            Long chatId = update.getMessage().getChatId();
+            boolean needToAnswer = false;
+            String textToSend = "";
 
-                //Сохранение данных пользователя в БД
-                DbDataManger.saveUser(update.getMessage().getFrom().getId(),
-                        update.getMessage().getFrom().getFirstName(),
-                        update.getMessage().getFrom().getLastName(),
-                        update.getMessage().getFrom().getUserName());
+            //Сохранение данных пользователя в БД
+            DbDataManger.saveUser(update.getMessage().getFrom().getId(),
+                    update.getMessage().getFrom().getFirstName(),
+                    update.getMessage().getFrom().getLastName(),
+                    update.getMessage().getFrom().getUserName());
 
-                //получаем текст сообщения и парси его
-                String messageText = update.getMessage().getText();
-                ParsedCommand parsedCommand = parser.getParsedCommand(messageText);
-                //если в тексте есть команда - то реагируем на неё соответствующим образом
-                switch (parsedCommand.getCommand()) {
-                    case START:
-                        textToSend = "Привет, " + update.getMessage().getFrom().getFirstName() + " " + update.getMessage().getFrom().getLastName() +"\n" +
-                                "Я бот и пока толком ничего не умею :(\n" +
-                                "Сейчас доступны команды:\n" +
-                                "/covid_total - получить мировую сводку по короновирусы на текуший момент\n" +
-                                "/covid_country {country_name} - получить сводку по короновирусу по указаной стране";
-                        needToAnswer = true;
-                        break;
-                    case COVID_TOTAL:
-                        textToSend = CovidInfoGetter.getWorldStatistic();
-                        needToAnswer = true;
-                        break;
-                    case COVID_COUNTRY:
-                        textToSend = CovidInfoGetter.getCountryStatistic(parsedCommand.getCommandText());
-                        needToAnswer = true;
-                        break;
-                }
+            //получаем текст сообщения и парси его
+            String messageText = update.getMessage().getText();
+            ParsedCommand parsedCommand = parser.getParsedCommand(messageText);
+            //если в тексте есть команда - то реагируем на неё соответствующим образом
+            switch (parsedCommand.getCommand()) {
+                case START:
+                    textToSend = "Привет, " + update.getMessage().getFrom().getFirstName() + " " + update.getMessage().getFrom().getLastName() + "\n" +
+                            "Я бот и пока толком ничего не умею :(\n" +
+                            "Сейчас доступны команды:\n" +
+                            "/covid_total - получить мировую сводку по короновирусы на текуший момент\n" +
+                            "/covid_country {country_name} - получить сводку по короновирусу по указаной стране";
+                    needToAnswer = true;
+                    break;
+                case COVID_TOTAL:
+                    textToSend = CovidInfoGetter.getWorldStatistic();
+                    needToAnswer = true;
+                    break;
+                case COVID_COUNTRY:
+                    textToSend = CovidInfoGetter.getCountryStatistic(parsedCommand.getCommandText());
+                    needToAnswer = true;
+                    break;
+            }
 
-                if (needToAnswer) {
-                    SendMessage messageToSend = new SendMessage();
-                    messageToSend.setChatId(chatId);
-                    messageToSend.setText(textToSend.equals("") ? "Мне нечего тебе сказать!" : textToSend);
-                    bot.sendQueue.add(messageToSend);
-                }
-                break;
+            if (needToAnswer) {
+                SendMessage messageToSend = new SendMessage();
+                messageToSend.setChatId(chatId);
+                messageToSend.setText(textToSend.equals("") ? "Мне нечего тебе сказать!" : textToSend);
+                bot.sendQueue.add(messageToSend);
+            }
         }
     }
 

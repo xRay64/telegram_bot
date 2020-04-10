@@ -2,9 +2,9 @@ package com.sulakov.service;
 
 import com.sulakov.tbot.Bot;
 import org.apache.log4j.Logger;
-import org.telegram.telegrambots.api.methods.BotApiMethod;
-import org.telegram.telegrambots.api.methods.send.SendSticker;
-import org.telegram.telegrambots.api.objects.Message;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
+import org.telegram.telegrambots.meta.api.objects.Message;
 
 public class MessageSender implements Runnable{
     private static final Logger logger = Logger.getLogger(MessageSender.class);
@@ -40,11 +40,12 @@ public class MessageSender implements Runnable{
                     logger.debug("Use Execute for " + object);
                     bot.execute(message);
                     break;
-                case STICKER:
-                    SendSticker sendSticker = (SendSticker) object;
-                    logger.debug("Use SendSticker for " + object);
-                    bot.sendSticker(sendSticker);
-                    break;
+                    /*Закомментировал до лучших времен*/
+//                case STICKER:
+//                    SendSticker sendSticker = (SendSticker) object;
+//                    logger.debug("Use SendSticker for " + object);
+//                    bot.sendSticker(sendSticker);
+//                    break;
                 case NOT_DETECTED:
                     logger.warn("Cant detect type of object. " + object);
             }
