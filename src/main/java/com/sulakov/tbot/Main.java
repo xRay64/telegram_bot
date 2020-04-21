@@ -2,7 +2,7 @@ package com.sulakov.tbot;
 
 import com.sulakov.db_service.DbMetadataCreator;
 import com.sulakov.service.MessageSender;
-import com.sulakov.service.PropertiesManager;
+import com.sulakov.services.PropertiesManager;
 import org.apache.log4j.Logger;
 import org.telegram.telegrambots.ApiContextInitializer;
 

@@ -1,12 +1,24 @@
 package com.sulakov.service;
 
-import com.sulakov.db_service.DbDataManger;
+import com.sulakov.db_service.CountryStats;
+import com.sulakov.db_service.DbCountryStatsManager;
+import com.sulakov.services.DbDataManger;
 import com.sulakov.tbot.Bot;
 import com.sulakov.tbot.CommandParser;
 import com.sulakov.tbot.ParsedCommand;
 import org.apache.log4j.Logger;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.general.DefaultPieDataset;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.Update;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.util.Map;
 
 public class ReceivedUpdateHandler implements Runnable {
 
@@ -27,7 +39,9 @@ public class ReceivedUpdateHandler implements Runnable {
         if (getUpdateType(update) == MessageType.MESSAGE_WITH_TEXT) {
             Long chatId = update.getMessage().getChatId();
             boolean needToAnswer = false;
+            boolean isPicture = false;
             String textToSend = "";
+            InputStream imageIs = null;
 
             //Сохранение данных пользователя в БД
             DbDataManger.saveUser(update.getMessage().getFrom().getId(),
@@ -35,7 +49,7 @@ public class ReceivedUpdateHandler implements Runnable {
                     update.getMessage().getFrom().getLastName(),
                     update.getMessage().getFrom().getUserName());
 
-            //получаем текст сообщения и парси его
+            //получаем текст сообщения и парсим его
             String messageText = update.getMessage().getText();
             ParsedCommand parsedCommand = parser.getParsedCommand(messageText);
             //если в тексте есть команда - то реагируем на неё соответствующим образом
@@ -45,25 +59,62 @@ public class ReceivedUpdateHandler implements Runnable {
                             "Я бот и пока толком ничего не умею :(\n" +
                             "Сейчас доступны команды:\n" +
                             "/covid_total - получить мировую сводку по короновирусы на текуший момент\n" +
-                            "/covid_country {country_name} - получить сводку по короновирусу по указаной стране";
+                            "/covid_country {country_name} - получить сводку по короновирусу по указаной стране. Если страна не выбрана - по Росии.";
                     needToAnswer = true;
                     break;
                 case COVID_TOTAL:
                     textToSend = CovidInfoGetter.getWorldStatistic();
+                    DbCountryStatsManager dbCountryStatsManager = new DbCountryStatsManager();
+                    Map<Integer, CountryStats> countryStatsMap = dbCountryStatsManager.getCountryStatsMap();
+                    logger.debug("Get in countryStatsMap");
+                    if (countryStatsMap.size() > 0) {
+                        DefaultPieDataset pieDataset = new DefaultPieDataset();
+                        textToSend = textToSend + "\n  ТОП-10 стран по количеству случев: ";
+                        for (Map.Entry<Integer, CountryStats> countryStatsEntry :
+                                countryStatsMap.entrySet()) {
+                            textToSend = textToSend + "\n" + String.format("%-4d%-15s%-10d",
+                                    countryStatsEntry.getKey(), countryStatsEntry.getValue().getName(), countryStatsEntry.getValue().getCases());
+                            pieDataset.setValue(countryStatsEntry.getValue().getName(), countryStatsEntry.getValue().getPercentOfAll());
+                        }
+                        JFreeChart chart = ChartFactory.createPieChart("Количество случаев в мире", pieDataset);
+                        BufferedImage bufferedImage = chart.createBufferedImage(1500, 1500);
+                        ByteArrayOutputStream os = new ByteArrayOutputStream();
+                        try {
+                            ImageIO.write(bufferedImage, "jpeg", os);
+                        } catch (IOException e) {
+                            logger.error(e);
+                        }
+                        imageIs = new ByteArrayInputStream(os.toByteArray());
+                    }
+
                     needToAnswer = true;
+                    isPicture = true;
                     break;
                 case COVID_COUNTRY:
                     textToSend = CovidInfoGetter.getCountryStatistic(parsedCommand.getCommandText());
                     needToAnswer = true;
                     break;
+                case PICTURE:
+                    textToSend = "";
+                    needToAnswer = true;
+                    isPicture = true;
+                    break;
             }
 
-            if (needToAnswer) {
+            if (needToAnswer && !isPicture) {
                 SendMessage messageToSend = new SendMessage();
                 messageToSend.setChatId(chatId);
                 messageToSend.setText(textToSend.equals("") ? "Мне нечего тебе сказать!" : textToSend);
                 bot.sendQueue.add(messageToSend);
+            } else if (needToAnswer && isPicture) {
+                SendPhoto sendPhoto = new SendPhoto();
+                sendPhoto.setChatId(chatId)
+                        .setPhoto("chart",(ByteArrayInputStream)imageIs)
+                        .setCaption(textToSend);
+                bot.sendQueue.add(sendPhoto);
             }
+        } else if (getUpdateType(update) == MessageType.NOT_DETECTED) {
+            logger.error("Update type is NOT_DETECTED");
         }
     }
 

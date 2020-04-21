@@ -1,6 +1,7 @@
 package com.sulakov.db_service;
 
-import com.sulakov.service.PropertiesManager;
+import com.sulakov.services.ConnectionProvider;
+import com.sulakov.services.PropertiesManager;
 import org.apache.log4j.Logger;
 
 import java.sql.*;

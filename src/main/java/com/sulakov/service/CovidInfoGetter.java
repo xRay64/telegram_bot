@@ -2,12 +2,10 @@ package com.sulakov.service;
 
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
-import org.json.JSONTokener;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -32,7 +30,7 @@ public class CovidInfoGetter {
 
     public static String getCountryStatistic(String countryName) {
         if ("".equals(countryName)) {
-            return "Нужно указать название страны на английском";
+            countryName = "Russia";
         }
         String urlString = API_URL + API_URL_APPENDIX_FOR_COUNTRY + countryName;
         logger.debug("Trying to get JSON from URL: " + urlString);

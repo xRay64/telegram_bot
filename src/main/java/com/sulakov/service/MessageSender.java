@@ -3,6 +3,8 @@ package com.sulakov.service;
 import com.sulakov.tbot.Bot;
 import org.apache.log4j.Logger;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
@@ -46,17 +48,24 @@ public class MessageSender implements Runnable{
 //                    logger.debug("Use SendSticker for " + object);
 //                    bot.sendSticker(sendSticker);
 //                    break;
+                case PHOTO:
+                    logger.debug("Use sendPhoto for : " + object);
+                    bot.execute((SendPhoto) object);
+                    break;
                 case NOT_DETECTED:
                     logger.warn("Cant detect type of object. " + object);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Cought Exception in MessageSender.send(): " + e);
         }
     }
 
     private MessageType defineMessageType(Object object) {
         if (object instanceof BotApiMethod) {
             return MessageType.EXECUTE;
+        }
+        if (object instanceof SendPhoto) {
+            return MessageType.PHOTO;
         }
         if (object instanceof SendSticker) {
             return MessageType.STICKER;
@@ -65,6 +74,6 @@ public class MessageSender implements Runnable{
     }
 
     enum MessageType {
-        EXECUTE, STICKER, NOT_DETECTED
+        EXECUTE, PHOTO,  STICKER, NOT_DETECTED
     }
 }

@@ -60,6 +60,9 @@ public class CommandParser {
             case "covid_country":
                 result = Command.COVID_COUNTRY;
                 break;
+            case "picture":
+                result = Command.PICTURE;
+                break;
         }
         return result;
     }
