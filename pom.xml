@@ -6,7 +6,7 @@
 
     <groupId>com.sulakov.tbot</groupId>
     <artifactId>TBot</artifactId>
-    <version>1.2.10</version>
+    <version>1.2.11</version>
 
     <name>Sulakov_Tbot</name>
 
@@ -51,7 +51,7 @@
         <dependency>
             <groupId>com.sulakov</groupId>
             <artifactId>services</artifactId>
-            <version>1.2-snapshot</version>
+            <version>1.5.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>

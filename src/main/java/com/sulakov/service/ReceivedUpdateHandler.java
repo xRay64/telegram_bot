@@ -9,6 +9,7 @@ import com.sulakov.tbot.ParsedCommand;
 import org.apache.log4j.Logger;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PiePlot3D;
 import org.jfree.data.general.DefaultPieDataset;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -76,8 +77,22 @@ public class ReceivedUpdateHandler implements Runnable {
                                     countryStatsEntry.getKey(), countryStatsEntry.getValue().getName(), countryStatsEntry.getValue().getCases());
                             pieDataset.setValue(countryStatsEntry.getValue().getName(), countryStatsEntry.getValue().getPercentOfAll());
                         }
-                        JFreeChart chart = ChartFactory.createPieChart("Количество случаев в мире", pieDataset);
-                        BufferedImage bufferedImage = chart.createBufferedImage(1500, 1500);
+                        //start graph build via JFreeChart
+                        JFreeChart chart = ChartFactory.createPieChart3D(
+                                "Количество случаев в мире",
+                                pieDataset,
+                                false,
+                                true,
+                                false);
+                        chart.setBackgroundPaint(Color.WHITE);
+                        PiePlot3D plot = (PiePlot3D) chart.getPlot();
+                        plot.setStartAngle( 270 );
+                        plot.setForegroundAlpha( 0.60f );
+                        plot.setInteriorGap( 0.02 );
+                        plot.setBackgroundPaint(Color.white);
+                        plot.setLabelBackgroundPaint(Color.white);
+                        //end graph guild. Start write into image
+                        BufferedImage bufferedImage = chart.createBufferedImage(1280, 960);
                         ByteArrayOutputStream os = new ByteArrayOutputStream();
                         try {
                             ImageIO.write(bufferedImage, "jpeg", os);
