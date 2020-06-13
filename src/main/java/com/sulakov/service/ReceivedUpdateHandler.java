@@ -95,7 +95,7 @@ public class ReceivedUpdateHandler implements Runnable {
                         BufferedImage bufferedImage = chart.createBufferedImage(1280, 960);
                         ByteArrayOutputStream os = new ByteArrayOutputStream();
                         try {
-                            ImageIO.write(bufferedImage, "jpeg", os);
+                            ImageIO.write(bufferedImage, "gif", os);
                         } catch (IOException e) {
                             logger.error(e);
                         }

@@ -21,7 +21,7 @@ public class DbCountryStatsManager {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(
                     "select rnk, name, cases, prcnt" +
-                            "       from tbot_db.country_cases_top_ten");
+                            "       from tbot_db.country_cases_top_ten_mvw");
             while (resultSet.next()) {
                 countryStatsMap.put(resultSet.getInt(1), new CountryStats(
                         resultSet.getString(2)
